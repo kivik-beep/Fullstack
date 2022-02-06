@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
+import contactService from './services/persons'
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -8,41 +8,47 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [filter, setFilter] = useState('')
 
-useEffect(() => {
-  axios
-    .get('http://localhost:3001/persons')
-    .then(response => {
-      setPersons(response.data)
-    })
-
-}, [])
+  useEffect(() => {
+    contactService
+      .getAll()
+      .then(response => {
+        setPersons(response.data)
+      })
+  }, [])
 
   const addContact = (event) => {
     event.preventDefault()
+    const personObject = {
+      name: newName,
+      number: newNumber
+    }
+    const names = persons.map(p => p.name)
 
-    const names = persons.map(person => person.name)
-    if(names.includes(newName)){
-      window.alert(`${newName} is already added to phonebook`)
+    if(names.includes(personObject.name)){
+      if(window.confirm(`${personObject.name} is already added to phonebook, `
+                        +`replace the old number with a new one?`)) {
+        contactService
+          .update(persons.find(p => p.name === personObject.name).id, personObject)
+        setPersons((persons.filter(p => p.name !== personObject.name)).concat(personObject))
+      }
     }
     else 
     {
-      const personObject = {
-        name: newName,
-        number: newNumber
-      }
-      setPersons(persons.concat(personObject))
+      contactService
+        .create(personObject)
+          .then(response => {
+            setPersons(persons.concat(response.data))
+          })
     }
     setNewName('')
     setNewNumber('')
   }
 
   const handleNewName = (event) => {
-    console.log(event.target.value)
     setNewName(event.target.value)
   }
 
   const handleNewNumber = (event) => {
-    console.log(event.target.value)
     setNewNumber(event.target.value)
   }
   
@@ -59,10 +65,10 @@ useEffect(() => {
       <h2>Phonebook</h2>
       <Filter filter={filter} handleFilter={handleFilter} />
       <h3>Add a new</h3>
-      <Persons addContact={addContact} handleNewName={handleNewName} newNumber={newNumber}
+      <Persons addContact={addContact} newName={newName} handleNewName={handleNewName} newNumber={newNumber}
             handleNewNumber={handleNewNumber} />
       <h3>Numbers</h3>
-      <Numbers persons={filteredContacts} />
+      <Numbers persons={filteredContacts} setPersons={setPersons}/>
     </div>
   )
 }
@@ -103,30 +109,36 @@ const Persons = ({addContact, newName, handleNewName, newNumber, handleNewNumber
   )
 }
 
-const Numbers = ({persons}) => {
+const Numbers = ({persons, setPersons}) => {
   return (
-    <table>
-      <thead>
-        <tr>
-          <td><b>name</b></td>
-          <td><b>number</b></td>
-        </tr>
-      </thead>
-      <tbody>
-        {persons.map(person =>
-        <Person key={person.name} person={person}/>
-        )}
-      </tbody>
-    </table>
+    <div>
+      <ul>
+      {persons.map(person =>
+        <Person 
+          key={person.name}
+          person={person}
+          persons={persons}
+          setPersons={setPersons}/>
+      )}
+      </ul>
+    </div>
   )
 }
 
-const Person = ({person}) => {
+const Person = ({person, persons, setPersons}) => {
   return (
-    <tr>
-      <td>{person.name} </td>
-      <td>{person.number}</td>
-    </tr>
+    <div>
+      <p>{person.name} {person.number} 
+      <button onClick={() =>
+        {if(window.confirm(`Delete ${person.name}?`)) 
+          {
+            contactService
+              .remove(person.id)
+          }
+        setPersons(persons.filter(p => p.id !== person.id))
+        }
+      }>delete</button></p>
+    </div>
   )
 }
 
