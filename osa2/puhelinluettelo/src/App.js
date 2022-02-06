@@ -7,6 +7,8 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filter, setFilter] = useState('')
+  const [errorMessage, setError] = useState(null)
+  const [noteMessage, setNote] = useState(null)
 
   useEffect(() => {
     contactService
@@ -29,7 +31,27 @@ const App = () => {
                         +`replace the old number with a new one?`)) {
         contactService
           .update(persons.find(p => p.name === personObject.name).id, personObject)
-        setPersons((persons.filter(p => p.name !== personObject.name)).concat(personObject))
+              .then(
+                setPersons((persons.filter(p => p.name !== personObject.name)).concat(personObject))
+              )
+              .then(note => {
+                setNote(
+                  `Contact '${personObject.name}' succesfully updated`
+                )
+                setTimeout(() => {
+                  setNote(null)
+                }, 5000)
+              })
+          .catch(error => {
+            setError(
+              `Contact '${personObject.name}' was already removed from server`
+            )
+            setTimeout(() => {
+              setError(null)
+            }, 5000)
+            setPersons((persons.filter(p => p.name !== personObject.name)))
+          })
+        
       }
     }
     else 
@@ -39,6 +61,14 @@ const App = () => {
           .then(response => {
             setPersons(persons.concat(response.data))
           })
+          .finally(note => {
+      setNote(
+        `Contact '${personObject.name}' succesfully added`
+      )
+      setTimeout(() => {
+        setNote(null)
+      }, 5000)
+    })
     }
     setNewName('')
     setNewNumber('')
@@ -63,6 +93,8 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <ErrorNotification message={errorMessage} />
+      <Notification message={noteMessage} />
       <Filter filter={filter} handleFilter={handleFilter} />
       <h3>Add a new</h3>
       <Persons addContact={addContact} newName={newName} handleNewName={handleNewName} newNumber={newNumber}
@@ -111,33 +143,66 @@ const Persons = ({addContact, newName, handleNewName, newNumber, handleNewNumber
 
 const Numbers = ({persons, setPersons}) => {
   return (
-    <div>
-      <ul>
-      {persons.map(person =>
-        <Person 
+    <table>
+      <thead>
+        <tr>
+          <td><b>name</b></td>
+          <td><b>number</b></td>
+        </tr>
+      </thead>
+      <tbody>
+        {persons.map(person =>
+          <Person 
           key={person.name}
           person={person}
           persons={persons}
           setPersons={setPersons}/>
-      )}
-      </ul>
-    </div>
+        )}
+      </tbody>
+    </table>
   )
 }
 
 const Person = ({person, persons, setPersons}) => {
   return (
-    <div>
-      <p>{person.name} {person.number} 
-      <button onClick={() =>
-        {if(window.confirm(`Delete ${person.name}?`)) 
-          {
-            contactService
-              .remove(person.id)
-          }
-        setPersons(persons.filter(p => p.id !== person.id))
-        }
-      }>delete</button></p>
+    <tr>
+      <td>{person.name} </td>
+      <td>{person.number} </td>
+      <td>
+        <button onClick={() =>
+          {if(window.confirm(`Delete ${person.name}?`)) 
+            {
+              contactService
+                .remove(person.id)
+            }
+            setPersons(persons.filter(p => p.id !== person.id))
+          }}>delete
+        </button>
+      </td>
+    </tr>
+  )
+}
+
+const Notification = ({ message}) => {
+  if (message === null) {
+    return null
+  }
+
+  return (
+    <div className="note">
+      {message}
+    </div>
+  )
+}
+
+const ErrorNotification = ({ message}) => {
+  if (message === null) {
+    return null
+  }
+
+  return (
+    <div className="error">
+      {message}
     </div>
   )
 }

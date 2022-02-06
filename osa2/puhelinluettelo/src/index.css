@@ -1,0 +1,42 @@
+h2 {
+    color: rgb(49, 161, 64);
+    font-size: 40px;
+    text-shadow: 1px 1px 0.5px rgb(3, 94, 11);
+}
+
+h3 {
+    color: rgb(1, 70, 22);
+}
+
+button {
+    background-color: white; 
+    color: black;
+    border: 2px solid #4CAF50;
+    margin-left: 4px;
+    transition-duration: 0.4s;
+    border-radius: 6px;
+}
+button:hover {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.error {
+    color: #ff2d2d;
+    background: rgb(255, 216, 216);  
+    font-size: 20px;
+    border-style: solid;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.note {
+    color: rgb(0, 189, 31);
+    background: rgb(231, 248, 227);  
+    font-size: 20px;
+    border-style: solid;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
