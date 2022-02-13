@@ -44,7 +44,7 @@ const App = () => {
               })
           .catch(error => {
             setError(
-              `Contact '${personObject.name}' was already removed from server`
+              `Contact '${personObject.name}' was already removed from server or ${error}`
             )
             setTimeout(() => {
               setError(null)
@@ -58,17 +58,26 @@ const App = () => {
     {
       contactService
         .create(personObject)
-          .then(response => {
-            setPersons(persons.concat(response.data))
-          })
-          .finally(note => {
-      setNote(
-        `Contact '${personObject.name}' succesfully added`
-      )
-      setTimeout(() => {
-        setNote(null)
-      }, 5000)
-    })
+        .then(response => {
+          setPersons(persons.concat(response.data))
+        })
+        .then(note => {
+          setNote(
+            `Contact '${personObject.name}' succesfully added`
+          )
+          setTimeout(() => {
+            setNote(null)
+          }, 5000)
+        })
+        .catch(error => {
+          console.log(error.response.data.error)
+          setError(
+            error.response.data.error
+          )
+          setTimeout(() => {
+            setError(null)
+          }, 5000)
+        })
     }
     setNewName('')
     setNewNumber('')
